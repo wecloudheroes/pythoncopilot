@@ -1,44 +1,48 @@
-def start_game():
-    print("Welcome to the Game!")
-    player_name = input("Enter your name: ")
-    print(f"Hello, {player_name}! Let's begin...")
-    # Initialize game state
-    game_state = {
-        "player_name": player_name,
-        "score": 0,
-        "level": 1
-    }
-    # Start the first level
-    start_level(game_state)
+import random
 
-def start_level(state):
-    print(f"Starting Level {state['level']}...")
-    # Simulate gameplay
-    for i in range(3):
-        answer = input("What is 2 + 2? ")
-        if answer == "4":
-            print("Correct!")
-            state['score'] += 1
-        else:
-            print("Incorrect!")
-    # Level complete
-    complete_level(state)
+def get_user_choice():
+    choices = ['stone', 'paper', 'scissor']
+    user_input = input("Enter your choice (stone/paper/scissor): ").lower()
+    while user_input not in choices:
+        print("Invalid choice. Try again.")
+        user_input = input("Enter your choice (stone/paper/scissor): ").lower()
+    return user_input
 
-def complete_level(state):
-    print(f"Level {state['level']} complete!")
-    print(f"Your score: {state['score']}")
-    # Check if player wants to continue
-    continue_game = input("Do you want to continue to the next level? (yes/no) ")
-    if continue_game.lower() == "yes":
-        state['level'] += 1
-        start_level(state)
+def get_computer_choice():
+    return random.choice(['stone', 'paper', 'scissor'])
+
+def decide_winner(user, computer):
+    if user == computer:
+        return "It's a tie!"
+    elif (user == 'stone' and computer == 'scissor') or \
+         (user == 'paper' and computer == 'stone') or \
+         (user == 'scissor' and computer == 'paper'):
+        return "You win!"
     else:
-        end_game(state)
+        return "Computer wins!"
 
-def end_game(state):
-    print("Thank you for playing!")
-    print(f"Your final score: {state['score']}")
-    # Save game state to a file
-    with open("savefile.txt", "w") as f:
-        f.write(str(state))
-    print("Game state saved.")
+def play_game():
+    print("Welcome to Stone, Paper, Scissor!")
+    while True:
+        user_choice = get_user_choice()
+        computer_choice = get_computer_choice()
+        print(f"You chose: {user_choice}")
+        print(f"Computer chose: {computer_choice}")
+        print(decide_winner(user_choice, computer_choice))
+        play_again = input("Play again? (y/n): ").lower()
+        if play_again != 'y':
+            print("Thanks for playing!")
+            break
+
+            # You can add a function to display the game rules
+            def show_rules():
+                print("Game Rules:")
+                print("- Stone beats Scissor")
+                print("- Scissor beats Paper")
+                print("- Paper beats Stone")
+                print("- If both choose the same, it's a tie!")
+
+            # Optionally, call show_rules() before starting the game
+            show_rules()
+if __name__ == "__main__":
+    play_game()

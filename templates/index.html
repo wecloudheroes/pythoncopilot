@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stone Paper Scissor Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f0f0; }
+        .container { max-width: 400px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; }
+        .choices { display: flex; justify-content: space-around; margin: 20px 0; }
+        button { padding: 10px 20px; font-size: 16px; border-radius: 5px; border: none; background: #007bff; color: #fff; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { text-align: center; margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stone Paper Scissor</h1>
+        <form method="post">
+            <div class="choices">
+                {% for choice in choices %}
+                <button type="submit" name="choice" value="{{ choice }}">{{ choice.capitalize() }}</button>
+                {% endfor %}
+            </div>
+        </form>
+        {% if result %}
+        <div class="result">
+            <p>You chose: <strong>{{ user_choice }}</strong></p>
+            <p>Computer chose: <strong>{{ computer_choice }}</strong></p>
+            <p><strong>{{ result }}</strong></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
