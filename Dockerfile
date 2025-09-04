@@ -18,6 +18,12 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV SECRET_KEY=your_secret_key_change_this_in_production
 
+# Expose the port
+EXPOSE 5000
+
+# Run the application with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+
 # Expose port 5000
 EXPOSE 5000
 
