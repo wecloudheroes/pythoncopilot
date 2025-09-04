@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin Wheel Game</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4bb543;
+            --warning: #f72585;
+            --background: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 30px auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            will-change: transform;
+            transform: rotate(0deg);
+            border: 10px solid var(--primary);
+        }
+
+        .wheel-item {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            background: #ff6b6b;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            cursor: default;
+        }
+
+        .wheel-text {
+            position: absolute;
+            left: 75%;
+            top: 25%;
+            transform-origin: center;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 2;
+        }
+
+        /* Pointer style */
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            z-index: 3;
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid var(--warning);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .selected-item {
+            animation: highlight 1s infinite;
+            background: var(--success) !important;
+        }
+
+        @keyframes highlight {
+            0%, 100% { filter: brightness(100%); }
+            50% { filter: brightness(120%); }
+        }
+
+        .controls {
+            max-width: 400px;
+            margin: 20px auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .input-group form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .spin-btn {
+            width: 100%;
+            background: var(--success);
+            font-size: 1.2em;
+            padding: 15px;
+        }
+
+        .clear-btn {
+            background: var(--warning);
+        }
+
+        .result {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+            min-height: 40px;
+        }
+
+        .items-list {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--background);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .items-list span {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--secondary);
+        }
+
+        @media (max-width: 600px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .controls {
+                padding: 0 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Spin Wheel</h1>
+        
+        <div class="controls">
+            <div class="input-group">
+                <form method="post" style="display: flex; gap: 10px; flex: 1;">
+                    <input type="text" name="item" placeholder="Add an item to the wheel" required>
+                    <button type="submit" name="add_item" value="true">➕ Add</button>
+                </form>
+                <form method="post" style="margin: 0;">
+                    <button type="submit" name="clear_items" value="true" class="clear-btn">🗑️ Clear All</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="items-list">
+            <h3>Items on the Wheel:</h3>
+            {% for item, freq in items.items() %}
+            <span title="Frequency: {{ freq }}">{{ item }} ({{ freq }})</span>
+            {% endfor %}
+        </div>
+
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="spinner">🎯</div>
+            <div class="wheel" id="wheel">
+                <!-- Wheel segments will be added here by JavaScript -->
+            </div>
+            <div class="wheel-stats">Total segments: <span id="totalSegments">0</span></div>
+        </div>
+
+        <div class="controls">
+            <button class="spin-btn" onclick="spinWheel()" {% if not items %}disabled{% endif %}>
+                🎲 Spin the Wheel!
+            </button>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="navigation">
+            <a href="/" class="nav-link">← Back to Stone Paper Scissor</a>
+        </div>
+    </div>
+
+    <script>
+        const wheel = document.getElementById('wheel');
+        const result = document.getElementById('result');
+        let isSpinning = false;
+
+        function createWheel(itemsData) {
+            console.log('Creating wheel with items:', itemsData);
+            wheel.innerHTML = '';
+            
+            if (!itemsData || Object.keys(itemsData).length === 0) {
+                console.log('No items to create wheel');
+                document.getElementById('totalSegments').textContent = '0';
+                return;
+            }
+
+            // Calculate total frequency for proportional segments
+            let totalFrequency = 0;
+            let expandedItems = [];
+            
+            // Create expanded items array based on frequencies
+            for (const [item, freq] of Object.entries(itemsData)) {
+                totalFrequency += freq;
+                for (let i = 0; i < freq; i++) {
+                    expandedItems.push(item);
+                }
+            }
+
+            document.getElementById('totalSegments').textContent = totalFrequency;
+            
+            const segmentAngle = 360 / totalFrequency;
+            expandedItems.forEach((item, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'wheel-item';
+                
+                // Position each segment
+                segment.style.transform = `rotate(${index * segmentAngle}deg)`;
+                
+                // Set color based on the item (same items get same color)
+                const itemIndex = Object.keys(itemsData).indexOf(item);
+                const hue = (itemIndex * (360 / Object.keys(itemsData).length)) % 360;
+                segment.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
+                
+                // Add item text
+                const textDiv = document.createElement('div');
+                textDiv.className = 'wheel-text';
+                const freq = itemsData[item];
+                textDiv.textContent = `${item}`;
+                textDiv.style.transform = `translate(-50%, -50%) rotate(${90 + (segmentAngle / 2)}deg)`;
+                
+                segment.appendChild(textDiv);
+                wheel.appendChild(segment);
+            });
+
+            // Reset wheel rotation
+            wheel.style.transform = 'rotate(0deg)';
+            console.log('Wheel creation complete with', totalFrequency, 'segments');
+        }
+
+        async function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            // Reset previous selection
+            document.querySelectorAll('.wheel-item').forEach(item => {
+                item.classList.remove('selected-item');
+            });
+            result.textContent = '';
+
+            try {
+                const response = await fetch('/spinwheel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'spin=true'
+                });
+                
+                const data = await response.json();
+                
+                // Get expanded items list (accounting for frequencies)
+                let expandedItems = [];
+                const spans = document.querySelectorAll('.items-list span');
+                const itemsData = {};
+                spans.forEach(span => {
+                    const match = span.textContent.match(/(.*?)\s*\((\d+)\)/);
+                    if (match) {
+                        const [, item, freq] = match;
+                        const frequency = parseInt(freq);
+                        itemsData[item.trim()] = frequency;
+                        expandedItems.push(...Array(frequency).fill(item.trim()));
+                    }
+                });
+                
+                const selectedIndex = expandedItems.indexOf(data.selected);
+                // Random number of spins between 4 and 8
+                const numberOfSpins = Math.floor(Math.random() * 5) + 4; 
+                console.log(`Spinning for ${numberOfSpins} rounds`);
+                const segmentAngle = 360 / expandedItems.length;
+                const finalAngle = -(360 * numberOfSpins + (selectedIndex * segmentAngle));
+                
+                // Reset transition
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                
+                // Force reflow
+                wheel.offsetHeight;
+                
+                // Add transition back and spin
+                wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+                wheel.style.transform = `rotate(${finalAngle}deg)`;
+                
+                // Show result after animation
+                setTimeout(() => {
+                    // Find and highlight the selected segment
+                    const segments = document.querySelectorAll('.wheel-item');
+                    segments.forEach((segment, index) => {
+                        segment.classList.remove('selected-item');
+                        if (segment.querySelector('.wheel-text').textContent.trim() === data.selected) {
+                            segment.classList.add('selected-item');
+                        }
+                    });
+                    
+                    result.textContent = `🎉 Selected: ${data.selected}`;
+                    isSpinning = false;
+                }, 4000);
+            } catch (error) {
+                console.error('Error:', error);
+                isSpinning = false;
+            }
+        }
+
+        // Initialize and update wheel
+        // Initialize and update wheel
+        function updateWheel() {
+            const spans = document.querySelectorAll('.items-list span');
+            const itemsData = {};
+            let totalItems = 0;
+            
+            spans.forEach(span => {
+                if (span.textContent) {
+                    const match = span.textContent.match(/(.*?)\s*\((\d+)\)/);
+                    if (match) {
+                        const [, item, freq] = match;
+                        const frequency = parseInt(freq);
+                        itemsData[item.trim()] = frequency;
+                        totalItems += frequency;
+                    } else {
+                        // Handle case where item doesn't have frequency
+                        itemsData[span.textContent.trim()] = 1;
+                        totalItems += 1;
+                    }
+                }
+            });
+            
+            console.log('Updating wheel with items:', itemsData);
+            
+            // Update spin button state
+            const spinButton = document.querySelector('.spin-btn');
+            
+            if (totalItems > 0) {
+                createWheel(itemsData);
+                spinButton.disabled = false;
+                spinButton.title = 'Click to spin the wheel!';
+            } else {
+                wheel.innerHTML = '';
+                spinButton.disabled = true;
+                spinButton.title = 'Add items to spin the wheel';
+            }
+
+            // Update items display
+            const itemsList = document.querySelector('.items-list');
+            if (Object.keys(itemsData).length === 0) {
+                itemsList.innerHTML = '<h3>Items on the Wheel:</h3><p style="color: #666;">No items added yet</p>';
+                document.getElementById('totalSegments').textContent = '0';
+            }
+        }
+
+        // Update wheel on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing wheel...');
+            updateWheel();
+        });
+
+        // Handle form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (e.submitter && e.submitter.name === 'add_item') {
+                    e.preventDefault();
+                    const input = form.querySelector('input[name="item"]');
+                    const item = input.value.trim();
+                    
+                    if (item) {
+                        fetch('/spinwheel', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `add_item=true&item=${encodeURIComponent(item)}`
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = html;
+                            
+                            // Only update the items list and wheel
+                            const newItemsList = tempDiv.querySelector('.items-list');
+                            const oldItemsList = document.querySelector('.items-list');
+                            if (newItemsList && oldItemsList) {
+                                oldItemsList.innerHTML = newItemsList.innerHTML;
+                            }
+                            
+                            updateWheel();
+                            input.value = '';
+                            
+                            // Show success message
+                            const feedback = document.createElement('div');
+                            feedback.textContent = 'Item added successfully!';
+                            feedback.style.cssText = 'color: #4bb543; margin-top: 5px; text-align: center; font-weight: bold;';
+                            form.appendChild(feedback);
+                            setTimeout(() => feedback.remove(), 2000);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            const feedback = document.createElement('div');
+                            feedback.textContent = 'Error adding item. Please try again.';
+                            feedback.style.cssText = 'color: #f72585; margin-top: 5px; text-align: center; font-weight: bold;';
+                            form.appendChild(feedback);
+                            setTimeout(() => feedback.remove(), 2000);
+                        });
+                    } else {
+                        // Show error for empty input
+                        const feedback = document.createElement('div');
+                        feedback.textContent = 'Please enter an item';
+                        feedback.style.cssText = 'color: #f72585; margin-top: 5px; text-align: center; font-weight: bold;';
+                        form.appendChild(feedback);
+                        setTimeout(() => feedback.remove(), 2000);
+                    }
+                } else if (e.submitter && e.submitter.name === 'clear_items') {
+                    e.preventDefault();
+                    
+                    if (!confirm('Are you sure you want to clear all items?')) {
+                        return;
+                    }
+                    
+                    fetch('/spinwheel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'clear_items=true'
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        
+                        // Only update the items list and wheel
+                        const newItemsList = tempDiv.querySelector('.items-list');
+                        const oldItemsList = document.querySelector('.items-list');
+                        if (newItemsList && oldItemsList) {
+                            oldItemsList.innerHTML = newItemsList.innerHTML;
+                        }
+                        
+                        updateWheel();
+                        
+                        // Show success message
+                        const feedback = document.createElement('div');
+                        feedback.textContent = 'All items cleared!';
+                        feedback.style.cssText = 'color: #4bb543; margin-top: 5px; text-align: center; font-weight: bold;';
+                        form.appendChild(feedback);
+                        setTimeout(() => feedback.remove(), 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const feedback = document.createElement('div');
+                        feedback.textContent = 'Error clearing items. Please try again.';
+                        feedback.style.cssText = 'color: #f72585; margin-top: 5px; text-align: center; font-weight: bold;';
+                        form.appendChild(feedback);
+                        setTimeout(() => feedback.remove(), 2000);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
